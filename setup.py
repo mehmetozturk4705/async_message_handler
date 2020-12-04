@@ -24,7 +24,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
         "Development Status :: 3 - Alpha",
-        "Inteded Audience :: Developers"
+        "Intended Audience :: Developers"
     ],
     packages=["asynchronous_message_handler"],
     include_package_data=True,

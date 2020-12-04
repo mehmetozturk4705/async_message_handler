@@ -6,6 +6,7 @@ Home-page: https://github.com/mehmetozturk4705/async_message_handler
 Author: Mehmet Öztürk
 Author-email: mehmetozturk4705@gmail.com
 License: MIT
+Download-URL: https://github.com/mehmetozturk4705/async_message_handler/releases/download/0.0.1/async-message-handler-0.0.1.tar.gz
 Description: ## Asynchronous Message Handler
         
         This package is a niche message handler solution between asyncio event loop and processes/threads (Aka multiprocessing.Process/threading.Thread).
