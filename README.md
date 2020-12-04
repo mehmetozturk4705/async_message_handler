@@ -4,7 +4,7 @@ This package is a niche message handler solution between asyncio event loop and 
 
 You can install this package by 
 
-    pip install asynchronous-message-handler
+    pip install async-message-handler
     
 
 * AMH creates asynchronous connection between asyncio event loop and another python process/thread.
