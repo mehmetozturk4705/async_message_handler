@@ -1,0 +1,5 @@
+venv
+wslenv
+.idea
+**/__pycache__/
+.cert
