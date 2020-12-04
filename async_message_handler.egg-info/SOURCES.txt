@@ -1,4 +1,5 @@
 README.md
+setup.cfg
 setup.py
 async_message_handler.egg-info/PKG-INFO
 async_message_handler.egg-info/SOURCES.txt
