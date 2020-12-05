@@ -5,13 +5,20 @@ import threading
 import queue
 import uuid
 import time
+from enum import Enum
+import inspect
 
 from dataclasses import dataclass
+
+
+class Events(Enum):
+    NewMessage = 1
 
 @dataclass
 class CommandContext:
     tx_queue:Queue
     rx_queue:Queue
+    message_queue:Queue
     _lock = Lock()
     _context = dict()
 
@@ -46,6 +53,15 @@ class CommandContext:
         :return: CommandContext
         """
         return self.tx_queue.get(block=block, timeout=timeout)
+
+    def send_message(self, payload):
+        """
+        Sends message to asynchronous context.
+
+        :param payload:
+        :return:
+        """
+        self.message_queue.put_nowait(payload)
 
 
 
@@ -88,18 +104,23 @@ class ProcessCommand(object):
 
 
 class ProcessCommandHandler(object):
-    def __init__(self, timeout:int=None):
+    def __init__(self, timeout:int=None, loop:asyncio.AbstractEventLoop=None):
         """
         Process command handler to manage data transfer from thread or process to async context.
 
         :param timeout: Awaiting timeout in seconds.
+        :param loop: The asyncio loop object which events will be triggered on.
         """
         self._timeout = timeout
         self._tx_queue = Queue()
         self._rx_queue = Queue()
+        self._message_queue = Queue()
+        self.loop = loop if loop is not None else asyncio.get_event_loop()
+        self.loop.create_task(self._message_coroutine())
+        self._events = {}
         self._command_ids = set()
         self._responses = dict()
-        self._command_context = CommandContext(self._tx_queue, self._rx_queue)
+        self._command_context = CommandContext(self._tx_queue, self._rx_queue, self._message_queue)
 
     def _get_new_command_id(self):
         while True:
@@ -107,6 +128,40 @@ class ProcessCommandHandler(object):
             if cur_context_id not in self._command_ids \
                     and cur_context_id not in self._responses:
                 return cur_context_id
+
+    @asyncio.coroutine
+    def _message_coroutine(self):
+        while True:
+            try:
+                message = self._message_queue.get_nowait()
+                if Events.NewMessage.value in self._events:
+                    for f in self._events[Events.NewMessage.value]:
+                        f(message)
+            except queue.Empty as e:
+                yield
+
+    def on(self, event:Events):
+        """
+        Event decorator.
+
+        :param event: Event which will be handled.
+        :return: Function
+        """
+        if not isinstance(event, Events):
+            raise ValueError("event object should be Events type.")
+
+        def w(f):
+            #Inspect parameter specifications should change for different event types.
+            #For now, it is same for all events.
+            if len(inspect.signature(f).parameters) != 1:
+                raise ValueError("Function should have one parameter which will be message payload.")
+            if event.value not in self._events:
+                self._events[event.value] = []
+            self._events[event.value].append(f)
+            return f
+        return w
+
+
 
     def _tick(self):
         try:

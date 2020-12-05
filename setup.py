@@ -10,12 +10,12 @@ README = (BASE_PATH / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="async-message-handler",
-    version="0.0.2",
+    version="0.1.0",
     description="Asynchronous message handler between Process/Thread and asyncio event loop.",
     long_description=README,
     long_description_content_type="text/markdown",
     url="https://github.com/mehmetozturk4705/async_message_handler",
-    download_url="https://github.com/mehmetozturk4705/async_message_handler/releases/download/0.0.2/async-message-handler-0.0.2.tar.gz",
+    download_url="https://github.com/mehmetozturk4705/async_message_handler/releases/download/0.1.0/async-message-handler-0.1.0.tar.gz",
     author="Mehmet Öztürk",
     author_email="mehmetozturk4705@gmail.com",
     license="MIT",
