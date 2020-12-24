@@ -36,7 +36,7 @@ async def main():
     #This is asyncio context.
     response = await handler.command("Hello from asyncio.")
     print(response)
-    #Waitinf for a while for sample process to loop message demo.
+    #Waiting for a while for sample process to loop message demo.
     await asyncio.sleep(8)
 
 

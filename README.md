@@ -9,9 +9,6 @@ You can install this package by
 
 * AMH creates asynchronous connection between asyncio event loop and another python process/thread.
 
-* For now, AMH only supports sending commands or primitive payloads from asyncio event loop to Process/Thread, and Process can respond incoming ProcessCommand object.
-
-
 ### How to use?
 
 Code below shows basic usage of message handler api. This message api is completely nonblocking in asyncio event loop.
@@ -54,7 +51,7 @@ Code below shows basic usage of message handler api. This message api is complet
         #This is asyncio context.
         response = await handler.command("Hello from asyncio.")
         print(response)
-        #Waitinf for a while for sample process to loop message demo.
+        #Waiting for a while for sample process to loop message demo.
         await asyncio.sleep(8)
     
     
@@ -65,3 +62,5 @@ Code below shows basic usage of message handler api. This message api is complet
         loop = asyncio.get_event_loop()
         loop.run_until_complete(main())
         process.join()
+        
+        

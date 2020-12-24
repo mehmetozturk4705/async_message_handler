@@ -7,6 +7,7 @@ import uuid
 import time
 from enum import Enum
 import inspect
+import logging
 
 from dataclasses import dataclass
 
@@ -44,7 +45,7 @@ class CommandContext:
             else:
                 return cls._context[context_id]
 
-    def get_next(self, block=True, timeout=None)->"ProcessCommand":
+    def get_next(self, block=True, timeout: int = None)->"ProcessCommand":
         """
         Gathers next ProcessCommand object.
 
@@ -59,7 +60,6 @@ class CommandContext:
         Sends message to asynchronous context.
 
         :param payload:
-        :return:
         """
         self.message_queue.put_nowait(payload)
 
@@ -91,7 +91,6 @@ class ProcessCommand(object):
         Replies current command.
 
         :param payload: Reply payload object.
-        :return:
         """
         if not self._response_status:
             command_context = CommandContext.get_current_context()
@@ -111,11 +110,17 @@ class ProcessCommandHandler(object):
         :param timeout: Awaiting timeout in seconds.
         :param loop: The asyncio loop object which events will be triggered on.
         """
+        # Timeout of reply from external process/thread
         self._timeout = timeout
+        # Transfer queue for message outputs.
         self._tx_queue = Queue()
+        # Receive queue for incoming messages
         self._rx_queue = Queue()
+        # Message queue for processing Asynchronous process/thread context to event loop context.
         self._message_queue = Queue()
+
         self.loop = loop if loop is not None else asyncio.get_event_loop()
+        # Handling incoming events asynchronously.
         self.loop.create_task(self._message_coroutine())
         self._events = {}
         self._command_ids = set()
@@ -131,6 +136,8 @@ class ProcessCommandHandler(object):
 
     @asyncio.coroutine
     def _message_coroutine(self):
+        # Block for event handling yield.
+        # This block triggers respective event handlers in loop context.
         while True:
             try:
                 message = self._message_queue.get_nowait()
@@ -139,6 +146,8 @@ class ProcessCommandHandler(object):
                         f(message)
             except queue.Empty as e:
                 yield
+            except Exception as e: #Unhandled exception in callback processing.
+                logging.exception("Unhandled exception", e)
 
     def on(self, event:Events):
         """
@@ -147,6 +156,7 @@ class ProcessCommandHandler(object):
         :param event: Event which will be handled.
         :return: Function
         """
+        # Register events.
         if not isinstance(event, Events):
             raise ValueError("event object should be Events type.")
 
@@ -160,8 +170,6 @@ class ProcessCommandHandler(object):
             self._events[event.value].append(f)
             return f
         return w
-
-
 
     def _tick(self):
         try:
@@ -179,6 +187,7 @@ class ProcessCommandHandler(object):
 
         :param message: Payload
         """
+        # Sends command message and waits response till timeout or reply.
         command_id = self._get_new_command_id()
         self._command_ids.add(command_id)
         self._tx_queue.put_nowait(ProcessCommand(command_id, message))
